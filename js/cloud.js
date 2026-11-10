@@ -210,8 +210,15 @@
       m.yard = { pets: union(y.pets, y0.pets), plants: union(y.plants, y0.plants), burn: y.burn || y0.burn };
       return;
     }
-    const pf0 = m.pf, budgets0 = m.budgets, seen0 = s.seen;
+    const pf0 = m.pf, budgets0 = m.budgets, seen0 = s.seen, x0 = m.prefs && m.prefs.x;
     adopt(m, s, k, d);
+    // bills, savings goals and the watchlist (Family Finance 3) live in the settings: keep both sides'
+    if (x0 && m.prefs && m.prefs.x !== x0) {
+      const x = S().extras(m, true);
+      x.bills = union(x.bills, x0.bills); x.goals = union(x.goals, x0.goals);
+      (x0.watch || []).forEach((sym) => { if (x.watch.indexOf(sym) === -1) x.watch.push(sym); });
+      if (x0.nz) x.nz = Object.assign({}, x0.nz, x.nz);
+    }
     if (pf0 && m.pf && m.pf !== pf0) {
       m.pf.txns = union(m.pf.txns, pf0.txns, (x, y) => !!x.ref && x.ref === y.ref);
       m.pf.accounts = union(m.pf.accounts, pf0.accounts);

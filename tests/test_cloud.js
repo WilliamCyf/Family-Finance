@@ -9,7 +9,9 @@ const path = require('path');
 const { Server, makeFirebase, getAt } = require('./fakebase');
 
 const ROOT = path.join(__dirname, '..');
-const FILES = ['js/core.js', 'js/data.js', 'js/calc.js', 'js/ledger.js', 'js/play.js', 'js/lucky.js', 'js/blast.js', 'js/grid.js', 'js/store.js', 'js/cloud.js'];
+const FILES = ['js/core.js', 'js/data.js', 'js/calc.js', 'js/ledger.js', 'js/books.js', 'js/recur.js', 'js/plan.js', 'js/play.js', 'js/lucky.js', 'js/blast.js', 'js/grid.js', 'js/store.js', 'js/cloud.js'];
+// a phone that was never updated: FamFi 2.25's own store, sync and ledger code (kept in tests/old)
+const OLD_FILES = ['js/core.js', 'js/data.js', 'js/calc.js', 'tests/old/ledger-2.25.js', 'js/play.js', 'js/lucky.js', 'js/blast.js', 'js/grid.js', 'tests/old/store-2.25.js', 'tests/old/cloud-2.25.js'];
 let pass = 0, fail = 0;
 function ok(cond, msg) { if (cond) pass++; else { fail++; console.log('  ✗ ' + msg); } }
 const near2 = (a, b, eps, msg) => ok(Math.abs(a - b) <= eps, msg + ' (' + a + ' vs ' + b + ')');
@@ -22,12 +24,12 @@ function storage() {
   const m = new Map();
   return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), _m: m };
 }
-function phone(server, name, store) {
+function phone(server, name, store, files) {
   const fb = makeFirebase(server, name);
   const ctx = { console, setTimeout, clearTimeout, setImmediate, localStorage: store || storage(), firebase: fb.firebase, FAMFI_FIREBASE: { apiKey: 'test' } };
   ctx.window = ctx;
   vm.createContext(ctx);
-  FILES.forEach((f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f }));
+  (files || FILES).forEach((f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f }));
   const FF = ctx.FF;
   FF.store.init({});
   FF.cloud.boot();
@@ -726,6 +728,94 @@ async function main() {
   LC.unwatch(); await settle(40);
   LA.chatReset(); await settle(40);
   ok(getAt(server.data, CHAT) == null && getAt(server.data, LIVE) == null, 'Ann opens the game again: last time’s chat is gone, nothing is left behind');
+
+  /* ---------------- 20. Family Finance 3: bills, savings goals and the watchlist ----------------
+     They live in the person's own settings: private, on every phone of theirs — and a phone that
+     still runs FamFi 2.25 carries them along untouched instead of wiping them. */
+  console.log('20. bills and savings goals: private, on all your phones, safe next to FamFi 2.25');
+  const F1 = phone(server, 'f-iphone');
+  await F1.C.signUp('fay@example.com', 'secret-808', { name: 'Fay', avatar: AV('long') });
+  await settle();
+  const famF = await F1.C.createFamily('The Lim Family');
+  await settle(120);
+  const uidF = F1.S.state.uid, codeF = F1.S.family().code;
+  const bankF = F1.S.addAccount({ name: 'Bank', kind: 'bank', cur: 'MYR' }, 4000).id;
+  const billF = F1.S.addBill({ type: 'expense', name: 'Secret hobby club', amt: 88, cur: 'MYR', cat: 'fun', acct: bankF, every: 'month', day0: F1.FF.today() + 40 });
+  const goalF = F1.S.addSaving({ name: 'Surprise ring', target: 9000, start: 500 });
+  F1.S.toggleWatch('TSLA');
+  await settle(200);
+  const docF = (k) => JSON.parse(getAt(server.data, 'famfi/m/' + uidF + '/' + k)).d;
+  ok(docF('priv').prefs.x.bills.length === 1 && docF('priv').prefs.x.goals.length === 1 && docF('priv').prefs.x.watch[0] === 'TSLA', 'saved to the cloud, in the private document');
+  ok(!/Secret hobby|Surprise ring/.test(getAt(server.data, 'famfi/m/' + uidF + '/pub')) && !/Secret hobby|Surprise ring/.test(getAt(server.data, 'famfi/m/' + uidF + '/money')), 'nothing about them in what the family receives');
+  const F2 = phone(server, 'f-ipad');
+  await F2.C.signIn('fay@example.com', 'secret-808');
+  await settle(240);
+  ok(F2.S.extras().bills[0].name === 'Secret hobby club' && F2.S.extras().goals[0].name === 'Surprise ring' && F2.S.extras().watch.join() === 'TSLA', 'a second device of hers has them right after signing in');
+  ok(JSON.stringify(F2.C._.docsOf(F2.S.me(), F2.S.state).priv) === JSON.stringify(docF('priv')), 'and just looking changed nothing');
+  // family: her brother joins — he gets her house and her balances, never her bills or goals
+  const Bro = phone(server, 'f-bro');
+  await Bro.C.signUp('bro@example.com', 'secret-909', { name: 'Ben', avatar: AV('short') });
+  await settle();
+  await Bro.C.joinFamily(codeF);
+  await settle(200);
+  ok(Bro.S.member(uidF) && Bro.S.member(uidF).name === 'Fay' && !(Bro.S.member(uidF).prefs || {}).x && !/Secret hobby|Surprise ring/.test(JSON.stringify(Bro.S.member(uidF))), 'her brother’s phone never receives them');
+  ok(Bro.S.extras().bills.length === 0 && Bro.S.extras(Bro.S.member(uidF)).bills.length === 0, 'reading someone else’s gives an empty list (and no error)');
+  // a phone still on FamFi 2.25 signs in, records lunch, changes a setting
+  const Old = phone(server, 'f-oldphone', null, OLD_FILES);
+  await Old.C.signIn('fay@example.com', 'secret-808');
+  await settle(240);
+  ok(Old.S.mode() === 'cloud' && Old.S.me().pf.accounts.some((a) => a.id === bankF) && !Old.S.extras, 'the old phone signs in and sees her records (it knows nothing of bills)');
+  Old.S.addTxn({ type: 'expense', day: Old.FF.today(), amt: 12, cur: 'MYR', acct: bankF, cat: 'food', note: 'old-phone lunch' });
+  Old.S.setPref('sound', false);
+  await settle(280);
+  ok(docF('priv').pf.txns.some((t) => t.note === 'old-phone lunch') && docF('priv').prefs.sound === false, 'what the old phone did reached the cloud');
+  ok(docF('priv').prefs.x && docF('priv').prefs.x.bills.length === 1 && docF('priv').prefs.x.goals[0].puts.length === 1, 'and the bill and the goal are still there');
+  ok(F1.S.me().pf.txns.some((t) => t.note === 'old-phone lunch') && F1.S.extras().bills.length === 1 && F1.S.extras().goals.length === 1, 'the new phone shows the lunch, the bill and the goal');
+  // the old phone and a new one both change things while offline
+  Old.fb.setConnected(false); F1.fb.setConnected(false); await settle(40);
+  Old.S.addTxn({ type: 'expense', day: Old.FF.today(), amt: 5, cur: 'MYR', acct: bankF, cat: 'food', note: 'old offline kopi' });
+  F1.S.addBill({ type: 'expense', name: 'Gym', amt: 99, cur: 'MYR', cat: 'health', acct: bankF, every: 'month', day0: F1.FF.today() + 9 });
+  F1.S.putSaving(goalF.id, 250);
+  await settle(40);
+  F1.fb.setConnected(true); await settle(240);
+  Old.fb.setConnected(true); await settle(320);
+  ok(docF('priv').prefs.x.bills.length === 2 && docF('priv').prefs.x.goals[0].puts.length === 2 && docF('priv').pf.txns.some((t) => t.note === 'old offline kopi'), 'old and new both offline, then back: the kopi, both bills and the saving all kept');
+  ok(F1.S.extras().bills.length === 2 && F1.S.me().pf.txns.some((t) => t.note === 'old offline kopi'), 'on the new phone too');
+  // two new phones offline: a bill added on one, a goal on the other
+  F1.fb.setConnected(false); F2.fb.setConnected(false); await settle(40);
+  F1.S.addBill({ type: 'income', name: 'Salary', amt: 5200, cur: 'MYR', cat: 'salary', acct: bankF, every: 'month', day0: F1.FF.today() + 15 });
+  await settle(5);
+  F2.S.addSaving({ name: 'Bike', target: 1200 });
+  F2.S.toggleWatch('NVDA');
+  await settle(40);
+  F1.fb.setConnected(true); await settle(240);
+  F2.fb.setConnected(true); await settle(320);
+  const sig = (P) => P.S.extras().bills.map((b) => b.name).sort().join() + ' | ' + P.S.extras().goals.map((g) => g.name).sort().join() + ' | ' + P.S.extras().watch.slice().sort().join();
+  ok(sig(F1) === 'Gym,Salary,Secret hobby club | Bike,Surprise ring | NVDA,TSLA' && sig(F2) === sig(F1), 'two phones offline: both phones end with everything (' + sig(F2) + ')');
+  // the same bill comes due while both phones are offline: each writes it, the family of records keeps one
+  F1.fb.setConnected(false); F2.fb.setConnected(false); await settle(40);
+  const dueDay = F1.FF.today() + 9;
+  F1.FF.todayOverride = dueDay; F2.FF.todayOverride = dueDay;
+  const w1 = F1.S.runBills(), w2 = F2.S.runBills();
+  ok(w1.length === 1 && w2.length === 1 && w1[0].ref === w2[0].ref && w1[0].id !== w2[0].id, 'offline, each phone writes today’s gym payment');
+  await settle(40);
+  F1.fb.setConnected(true); await settle(240);
+  F2.fb.setConnected(true); await settle(320);
+  const gymOn = (list) => list.filter((t) => t.ref === w1[0].ref).length;
+  ok(gymOn(docF('priv').pf.txns) === 1 && gymOn(F1.S.me().pf.txns) === 1 && gymOn(F2.S.me().pf.txns) === 1, 'back online: one gym payment, not two — in the cloud and on both phones');
+  ok(F1.S.runBills().length === 0 && F2.S.runBills().length === 0, 'and neither writes it again');
+  F1.FF.todayOverride = null; F2.FF.todayOverride = null;
+  // an ordinary delete still travels (no conflict → nothing merged back)
+  F1.S.deleteBill(billF.id);
+  await settle(240);
+  ok(!F2.S.extras().bills.some((b) => b.id === billF.id) && docF('priv').prefs.x.bills.length === 2, 'deleting a bill on one phone removes it on the other');
+  // a backup made on one phone, restored on another, reaches the cloud whole
+  const fileF = JSON.parse(JSON.stringify(F1.S.backup()));
+  F2.S.addTxn({ type: 'expense', day: F2.FF.today(), amt: 700, cur: 'MYR', acct: bankF, cat: 'shopping', note: 'oops' });
+  await settle(200);
+  ok(F2.S.restoreBackup(fileF) === true, 'backup restored on the iPad');
+  await settle(240);
+  ok(!docF('priv').pf.txns.some((t) => t.note === 'oops') && !F1.S.me().pf.txns.some((t) => t.note === 'oops') && docF('priv').prefs.x.goals.length === 2, 'the restored records are what every phone and the cloud now have');
 
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
   process.exit(fail ? 1 : 0);

@@ -211,7 +211,7 @@
     ['fun', 0.03, 'w1'], ['shopping', 0.04, 'w2'], ['health', 0.015, 'w1'], ['family', 0.035, 'w2']];
   function seedEveryday(key, region, lang, pf) {
     const plan = EVERYDAY[key], T = SEED_TEXT[lang], k = region === 'th' ? 8 : 1, cur = REGION_BASE[region];
-    const t0 = FF.today(), from = t0 - 80;
+    const t0 = FF.today(), from = t0 - 400;
     const rnd = FF.rng(FF.hash('everyday:' + key + region));
     ['w1', 'w2', 'w3'].forEach((id, i) => { if (plan.start[i] || id !== 'w3') pf.accounts.push({ id, name: T.accounts[id], kind: id === 'w1' ? 'cash' : id === 'w2' ? 'bank' : 'ewallet', cur }); });
     const has = (id) => pf.accounts.some((a) => a.id === id);
@@ -1443,6 +1443,211 @@
   };
 
   /* =========================================================
+     FAMILY FINANCE 3 — bills & pay days, savings goals, a watchlist
+     Kept inside the person's own settings (prefs.x): private (the family never receives it),
+     synced across their own phones, and carried along untouched by a phone that still runs
+     FamFi 2.x — which sends the whole settings object back as it found it.
+     ========================================================= */
+  const X0 = () => ({ v: 1, bills: [], goals: [], watch: [] });
+  /* reading never changes anything (so just looking at a screen can't make a phone "have
+     something to send"); `write` attaches the tidy object for the actions below */
+  function extras(m, write) {
+    m = m || me();
+    if (!m) return X0();
+    const x = m.prefs && m.prefs.x;
+    if (x && typeof x === 'object' && Array.isArray(x.bills) && Array.isArray(x.goals) && Array.isArray(x.watch)) return x;
+    const o = X0();
+    if (x && typeof x === 'object') { ['bills', 'goals', 'watch'].forEach((k) => { if (Array.isArray(x[k])) o[k] = x[k]; }); if (x.nz) o.nz = x.nz; }
+    if (write) { m.prefs = Object.assign({}, DEFAULT_PREFS, m.prefs); m.prefs.x = o; }
+    return o;
+  }
+  const Rc = () => FF.recur;
+  const cleanBill = (b) => {
+    const o = { type: b.type === 'income' || b.type === 'transfer' ? b.type : 'expense', name: String(b.name || '').trim().slice(0, 40), amt: r2(Math.abs(+b.amt || 0)), cur: b.cur, acct: b.acct, every: Rc().EVERY.indexOf(b.every) !== -1 ? b.every : 'month', day0: Math.round(+b.day0), auto: b.auto !== false };
+    if (o.type === 'transfer') { o.to = b.to; if (b.toAmt != null && b.toCur) { o.toAmt = r2(+b.toAmt); o.toCur = b.toCur; } } else o.cat = b.cat;
+    if (b.end != null && isFinite(+b.end)) o.end = Math.round(+b.end);
+    if (b.off) o.off = true;
+    return o;
+  };
+  /* a new rule only looks ahead: nothing before its first date is ever asked for */
+  function addBill(b) {
+    const x = extras(null, true);
+    const nb = Object.assign({ id: FF.uid('r'), ts: Date.now() }, cleanBill(b));
+    nb.last = b.last != null ? Math.round(+b.last) : Math.max(nb.day0 - 1, FF.today() - 1);
+    x.bills.push(nb);
+    commit('bill', { b: nb });
+    return nb;
+  }
+  function updateBill(id, patch) {
+    const x = extras(null, true), i = x.bills.findIndex((b) => b.id === id);
+    if (i === -1) return null;
+    const old = x.bills[i];
+    const nb = Object.assign({ id: old.id, ts: old.ts }, cleanBill(Object.assign({}, old, patch)));
+    // a new date or rhythm starts the counting again from there (never reaching back before
+    // today); otherwise what was already dealt with stays dealt with
+    nb.last = nb.day0 !== old.day0 || nb.every !== old.every ? Math.max(nb.day0 - 1, FF.today() - 1) : (old.last != null ? old.last : nb.day0 - 1);
+    x.bills[i] = nb;
+    commit('bill', { b: nb });
+    return nb;
+  }
+  function deleteBill(id) {
+    const x = extras(null, true), b = x.bills.find((y) => y.id === id);
+    x.bills = x.bills.filter((y) => y.id !== id);
+    commit('bill-deleted', { b });
+    return b;
+  }
+  function restoreBill(b) { if (!b) return; const x = extras(null, true); x.bills = x.bills.filter((y) => y.id !== b.id).concat([b]).sort((p, q) => (p.ts || 0) - (q.ts || 0)); commit('bill', { b }); }
+  /* write the record for one due day (once: the reference is the same on every phone) */
+  function writeBill(m, rule, due, opts) {
+    const ref = Rc().refOf(rule, due);
+    if (m.pf.txns.some((t) => t.ref === ref)) return null;
+    const tx = Rc().record(rule, due);
+    if (opts && opts.amt != null && +opts.amt > 0) tx.amt = r2(+opts.amt);
+    if (opts && opts.day != null) tx.day = opts.day;
+    tx.id = FF.uid('t'); tx.ts = Date.now();
+    m.pf.txns.push(tx);
+    return tx;
+  }
+  /* Every rule that writes itself: add what has come due since it was last looked at. Rules set
+     to "ask me" are left for the person to confirm (payBill) or skip (skipBill).
+     Run when the app opens and when it comes back on a new day. */
+  function runBills(day) {
+    const m = me();
+    if (!m || mode() === 'none') return [];
+    day = day == null ? FF.today() : day;
+    const x = extras(m, true), added = [];
+    let touched = false;
+    x.bills.forEach((rule) => {
+      if (rule.off || !rule.auto || !Rc().valid(rule, m.pf)) return;
+      const open = Rc().open(rule, day);
+      if (!open.length) return;
+      open.forEach((d) => { const tx = writeBill(m, rule, d); if (tx) added.push(tx); });
+      rule.last = open[open.length - 1];
+      touched = true;
+    });
+    if (!touched) return [];
+    const badges = added.length ? evaluateBadges(m.id) : [];
+    commit('bills-auto', { added, badges });
+    return added;
+  }
+  /* "I've paid it" — the oldest open day of the rule (or the next one, paid early) */
+  function payBill(id, opts) {
+    const m = me(), x = extras(m, true), rule = x.bills.find((b) => b.id === id);
+    if (!rule || !Rc().valid(rule, m.pf)) return null;
+    const today = FF.today();
+    const due = Rc().nextOpen(rule, today);
+    if (due == null) return null;
+    const tx = writeBill(m, rule, due, { amt: opts && opts.amt, day: Math.min(due, today) });
+    rule.last = Math.max(Rc().handledUpTo(rule), due);
+    const gems = tx ? FF.play.logReward(playOf(m), dayNow()) : 0;
+    const badges = tx ? evaluateBadges(m.id) : [];
+    commit('bill-paid', { tx, due, badges, gems });
+    if (gems) FF.emit('gems', { n: gems, k: 'log' });
+    return { tx, due, badges };
+  }
+  function skipBill(id) {
+    const x = extras(null, true), rule = x.bills.find((b) => b.id === id);
+    if (!rule) return null;
+    const due = Rc().nextOpen(rule, FF.today());
+    if (due == null) return null;
+    rule.last = Math.max(Rc().handledUpTo(rule), due);
+    commit('bill-skipped', { due });
+    return due;
+  }
+
+  /* ---------- savings goals: a target, a date, and what has been set aside ---------- */
+  const cleanSaving = (g) => {
+    const o = { name: String(g.name || '').trim().slice(0, 40), emo: String(g.emo || '🎯').slice(0, 8), target: r2(Math.max(0, +g.target || 0)), cur: g.cur };
+    if (g.due != null && isFinite(+g.due)) o.due = Math.round(+g.due);
+    if (g.acct) o.acct = g.acct;
+    return o;
+  };
+  function addSaving(g) {
+    const x = extras(null, true);
+    const ng = Object.assign({ id: FF.uid('s'), ts: Date.now(), puts: [] }, cleanSaving(Object.assign({ cur: me().pf.base }, g)));
+    if (+g.start > 0) ng.puts.push({ id: FF.uid('p'), day: FF.today(), amt: r2(+g.start) });
+    x.goals.push(ng);
+    commit('saving', { g: ng });
+    return ng;
+  }
+  function updateSaving(id, patch) {
+    const x = extras(null, true), i = x.goals.findIndex((g) => g.id === id);
+    if (i === -1) return null;
+    const old = x.goals[i];
+    x.goals[i] = Object.assign({ id: old.id, ts: old.ts, puts: old.puts || [] }, cleanSaving(Object.assign({}, old, patch)));
+    if (old.cheered) x.goals[i].cheered = old.cheered;
+    commit('saving', { g: x.goals[i] });
+    return x.goals[i];
+  }
+  function deleteSaving(id) {
+    const x = extras(null, true), g = x.goals.find((y) => y.id === id);
+    x.goals = x.goals.filter((y) => y.id !== id);
+    commit('saving-deleted', { g });
+    return g;
+  }
+  function restoreSaving(g) { if (!g) return; const x = extras(null, true); x.goals = x.goals.filter((y) => y.id !== g.id).concat([g]).sort((p, q) => (p.ts || 0) - (q.ts || 0)); commit('saving', { g }); }
+  /* set money aside for a goal (a negative amount takes some back out); → the goal's new state */
+  function putSaving(id, amt, day) {
+    const m = me(), x = extras(m, true), g = x.goals.find((y) => y.id === id);
+    amt = r2(+amt);
+    if (!g || !isFinite(amt) || FF.isZero(amt)) return null;
+    const before = FF.plan.goal(g, m.pf);
+    g.puts = (g.puts || []).concat([{ id: FF.uid('p'), day: day == null ? FF.today() : day, amt }]);
+    const after = FF.plan.goal(g, m.pf);
+    // milestones are cheered once each: a quarter, half, three quarters, done
+    const step = (p) => (p.done ? 4 : Math.floor(p.pct * 4 + 1e-9));
+    const reached = step(after) > Math.max(step(before), g.cheered || 0) ? step(after) : 0;
+    if (reached) g.cheered = reached;
+    commit('saving-put', { g, reached });
+    return { g, before, after, reached };
+  }
+  function toggleWatch(sym) {
+    const x = extras(null, true), i = x.watch.indexOf(sym);
+    if (i === -1) { x.watch.push(sym); rememberAsset(me().pf, sym); } else x.watch.splice(i, 1);
+    commit('watch', { sym, on: i === -1 });
+    return i === -1;
+  }
+  /* a tip the person closed stays closed for a while (remembered with the day it was closed) */
+  function dismissNudge(key) { const x = extras(null, true); x.nz = Object.assign({}, x.nz); x.nz[key] = FF.today(); Object.keys(x.nz).forEach((k) => { if (x.nz[k] < FF.today() - 120) delete x.nz[k]; }); commit('nudge', { key }); }
+  const nudgeOff = (key, days) => { const x = extras(null, true), d = x.nz && x.nz[key]; return d != null && FF.today() - d < (days || 14); };
+
+  /* ---------- hide amounts (this phone only) ---------- */
+  function setHide(on) { FF.hideMoney = !!on; setDevice({ hide: !!on }); FF.emit('change', { reason: 'hide' }); }
+
+  /* ---------- a backup you can keep: everything that is yours, as one file ---------- */
+  function backup() {
+    const m = me();
+    if (!m) return null;
+    return { app: 'family-finance', v: 1, at: Date.now(), name: m.name, base: m.pf.base, pf: JSON.parse(JSON.stringify(m.pf)), budgets: JSON.parse(JSON.stringify(m.budgets || [])), x: JSON.parse(JSON.stringify(extras(m))) };
+  }
+  /* what a backup file holds, or null when it isn't one (nothing is changed) */
+  function readBackup(o) {
+    if (!o || typeof o !== 'object' || (o.app !== 'family-finance' && o.app !== 'famfi') || !o.pf || !Array.isArray(o.pf.txns) || !Array.isArray(o.pf.accounts)) return null;
+    const okTx = (t) => t && typeof t === 'object' && typeof t.id === 'string' && typeof t.type === 'string' && isFinite(+t.day);
+    const okAcc = (a) => a && typeof a === 'object' && typeof a.id === 'string' && typeof a.cur === 'string';
+    if (!o.pf.txns.every(okTx) || !o.pf.accounts.every(okAcc) || !o.pf.accounts.length) return null;
+    return { at: o.at || 0, name: o.name || '', records: o.pf.txns.length, accounts: o.pf.accounts.length, budgets: Array.isArray(o.budgets) ? o.budgets.length : 0, bills: o.x && Array.isArray(o.x.bills) ? o.x.bills.length : 0, goals: o.x && Array.isArray(o.x.goals) ? o.x.goals.length : 0 };
+  }
+  /* put a backup back: your records, accounts, budgets, bills and goals become the file's.
+     (Take a snapshot() first — the caller offers Undo.) */
+  function restoreBackup(o) {
+    const m = me();
+    if (!m || !readBackup(o)) return false;
+    const pf = JSON.parse(JSON.stringify(o.pf));
+    delete pf.share;
+    if (!pf.base) pf.base = m.pf.base;
+    learnAssets(pf);
+    pf.txns = pf.txns.filter((t) => !t.sym || FF.data.asset(t.sym));
+    m.pf = pf;
+    if (Array.isArray(o.budgets)) m.budgets = JSON.parse(JSON.stringify(o.budgets));
+    if (o.x && typeof o.x === 'object') { m.prefs = Object.assign({}, m.prefs); m.prefs.x = JSON.parse(JSON.stringify(o.x)); extras(m, true); }
+    upgradeMember(m);
+    evaluateBadges(m.id, true);
+    commit('restore');
+    return true;
+  }
+
+  /* =========================================================
      PREFS & PRIVACY
      ========================================================= */
   function setLang(lang) {
@@ -1468,6 +1673,7 @@
     opts = opts || {};
     memoryOnly = !!opts.memory;
     if (memoryOnly) state = blank(); else load();
+    FF.hideMoney = !memoryOnly && !!device().hide;
   }
 
   FF.store = {
@@ -1482,6 +1688,8 @@
     bbOf, blastFinish, blastBoard, blastRank, ensureArcade,
     yardOf, plantIndex, ensureLucky, ensureNews, ensureSage, sageSpot, spinToday, spinWheel, sageToday, sageAnswer, newsRead, newsToday, luckyToday, buyLucky, feedPet, setPetForm, sellPet, waterPlant, sellPlant, throwMolotov, burns, fishState, fishCast,
     levelOf, playOf, dayNow, claimDaily, buyItem, setDeco, setPetHome, checkRewards,
-    helpOf, setHelp, canHelp, pendingFor, refreshHelp, helpEdit, applyHelp
+    helpOf, setHelp, canHelp, pendingFor, refreshHelp, helpEdit, applyHelp,
+    extras, addBill, updateBill, deleteBill, restoreBill, runBills, payBill, skipBill,
+    addSaving, updateSaving, deleteSaving, restoreSaving, putSaving, toggleWatch, dismissNudge, nudgeOff, setHide, backup, readBackup, restoreBackup
   };
 })(typeof window !== 'undefined' ? window : this);
