@@ -1,0 +1,30 @@
+# macOS clutter
+.DS_Store
+
+# personal/local tool settings
+.claude/settings.local.json
+.firebase/
+
+# API keys for live prices (copy js/config.example.js → js/config.js)
+js/config.js
+
+# launch videos made with the /brag-slim skill (big files: never commit or deploy)
+brag-output/
+
+# secrets — never commit these (keep real values only on your own computer)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+secrets/
+credentials*.json
+*service-account*.json
+
+# tool logs and downloaded packages
+firebase-debug*.log
+npm-debug.log*
+node_modules/

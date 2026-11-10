@@ -1,0 +1,278 @@
+{
+  "rules": {
+    "famfi": {
+      "codes": {
+        "$code": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && newData.exists() && newData.parent().parent().child('f/' + newData.child('f').val() + '/ownerId').val() === auth.uid) || (data.exists() && root.child('famfi/f/' + data.child('f').val() + '/ownerId').val() === auth.uid))",
+          ".validate": "newData.hasChildren(['f', 'n']) && newData.child('n').isString() && newData.child('n').val().length <= 40 && newData.parent().parent().child('f/' + newData.child('f').val() + '/code').val() === $code"
+        }
+      },
+      "f": {
+        "$fid": {
+          ".read": "auth != null && data.child('members/' + auth.uid).exists()",
+          ".write": "auth != null && !newData.exists() && data.child('ownerId').val() === auth.uid",
+          "ownerId": {
+            ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && newData.exists() && data.parent().child('members/' + newData.val()).exists()))",
+            ".validate": "newData.isString()"
+          },
+          "code": {
+            ".write": "auth != null && newData.parent().child('ownerId').val() === auth.uid && (!data.parent().exists() || data.parent().child('ownerId').val() === auth.uid)",
+            ".validate": "newData.isString() && newData.val().length >= 7 && newData.val().length <= 12"
+          },
+          "name": {
+            ".write": "auth != null && newData.parent().child('ownerId').val() === auth.uid && (!data.parent().exists() || data.parent().child('ownerId').val() === auth.uid)",
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+          },
+          "created": {
+            ".write": "auth != null && !data.parent().exists() && newData.parent().child('ownerId').val() === auth.uid",
+            ".validate": "newData.isNumber()"
+          },
+          "members": {
+            "$uid": {
+              ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && newData.val() === newData.parent().parent().child('code').val()) || !newData.exists())) || (!newData.exists() && $uid !== auth.uid && data.parent().parent().child('ownerId').val() === auth.uid))",
+              ".validate": "newData.isString()"
+            }
+          },
+          "goals": {
+            "$gid": {
+              ".write": "(auth != null && (root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists() || newData.parent().parent().child('members/' + auth.uid).exists()))",
+              ".validate": "newData.hasChildren(['text', 'by', 'at']) && newData.child('text').isString() && newData.child('text').val().length <= 120"
+            }
+          },
+          "layout": {
+            "$k": {
+              ".write": "(auth != null && (root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists() || newData.parent().parent().child('members/' + auth.uid).exists()))",
+              ".validate": "newData.hasChildren(['i', 'j']) && newData.child('i').isNumber() && newData.child('j').isNumber()"
+            }
+          },
+          "pets": {
+            "$p": {
+              ".write": "(auth != null && (root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists() || newData.parent().parent().child('members/' + auth.uid).exists()))",
+              ".validate": "newData.isNumber()"
+            }
+          },
+          "hall": {
+            ".write": "auth != null && (root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists() || newData.parent().child('members/' + auth.uid).exists())",
+            ".validate": "newData.hasChildren(['name'])",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+            },
+            "by": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "at": {
+              ".validate": "newData.isNumber()"
+            },
+            "accounts": {
+              "$aid": {
+                ".validate": "newData.hasChildren(['name', 'cur'])",
+                "name": {
+                  ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+                },
+                "kind": {
+                  ".validate": "newData.isString() && newData.val().length <= 20"
+                },
+                "cur": {
+                  ".validate": "newData.isString() && newData.val().length === 3"
+                },
+                "by": {
+                  ".validate": "newData.isString() && newData.val().length <= 40"
+                },
+                "at": {
+                  ".validate": "newData.isNumber()"
+                },
+                "entries": {
+                  "$eid": {
+                    ".validate": "newData.hasChildren(['t', 'amt', 'day']) && newData.child('amt').isNumber() && newData.child('day').isNumber() && (newData.child('t').val() === 'set' || newData.child('t').val() === 'add')",
+                    "note": {
+                      ".validate": "newData.isString() && newData.val().length <= 80"
+                    }
+                  }
+                },
+                "$o": {
+                  ".validate": false
+                }
+              }
+            },
+            "$o": {
+              ".validate": false
+            }
+          },
+          "help": {
+            "$t": {
+              "$id": {
+                ".write": "auth != null && root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists() && ((!newData.exists() && (!data.exists() || auth.uid === $t || data.child('by').val() === auth.uid || !root.child('famfi/f/' + $fid + '/members/' + $t).exists())) || (newData.exists() && !data.exists() && newData.child('by').val() === auth.uid && $t !== auth.uid && root.child('famfi/f/' + $fid + '/members/' + $t).exists() && root.child('famfi/m/' + $t + '/share/help').val() === true))",
+                ".validate": "newData.hasChildren(['by', 'at', 'o'])",
+                "by": {
+                  ".validate": "newData.isString()"
+                },
+                "at": {
+                  ".validate": "newData.isNumber()"
+                },
+                "o": {
+                  ".validate": "newData.isString() && newData.val().length > 2 && newData.val().length <= 1500"
+                },
+                "$o": {
+                  ".validate": false
+                }
+              }
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "m": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+          "fam": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "pub": {
+            ".read": "(auth != null && data.parent().child('fam').exists() && root.child('famfi/f/' + data.parent().child('fam').val() + '/members/' + auth.uid).exists() && root.child('famfi/f/' + data.parent().child('fam').val() + '/members/' + $uid).exists())",
+            ".validate": "newData.isString() && newData.val().length <= 400000"
+          },
+          "money": {
+            ".read": "(auth != null && data.parent().child('fam').exists() && root.child('famfi/f/' + data.parent().child('fam').val() + '/members/' + auth.uid).exists() && root.child('famfi/f/' + data.parent().child('fam').val() + '/members/' + $uid).exists()) && (data.parent().child('share/all').val() === true || data.parent().child('share/who/' + auth.uid).val() === true)",
+            ".validate": "newData.isString() && newData.val().length <= 8000000"
+          },
+          "share": {
+            ".validate": "newData.hasChildren(['all'])",
+            "all": {
+              ".validate": "newData.isBoolean()"
+            },
+            "who": {
+              "$v": {
+                ".validate": "newData.isBoolean()"
+              }
+            },
+            "help": {
+              ".validate": "newData.isBoolean()"
+            },
+            "$o": {
+              ".validate": false
+            }
+          },
+          "priv": {
+            ".validate": "newData.isString() && newData.val().length <= 8000000"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "live": {
+        "$fid": {
+          ".read": "auth != null && root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists()",
+          "on": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && (!newData.exists() || root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists())",
+              ".validate": "newData.hasChildren(['at'])",
+              "at": {
+                ".validate": "newData.isNumber()"
+              },
+              "$o": {
+                ".validate": false
+              }
+            }
+          },
+          "g": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && (!newData.exists() || root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists())",
+              ".validate": "newData.hasChildren(['b', 'h', 's', 'm'])",
+              "b": {
+                ".validate": "newData.isString() && newData.val().length === 64"
+              },
+              "h": {
+                ".validate": "newData.isString() && newData.val().length <= 48"
+              },
+              "s": {
+                ".validate": "newData.isNumber()"
+              },
+              "c": {
+                ".validate": "newData.isNumber()"
+              },
+              "m": {
+                ".validate": "newData.isNumber()"
+              },
+              "o": {
+                ".validate": "newData.isBoolean()"
+              },
+              "at": {
+                ".validate": "newData.isNumber()"
+              },
+              "l": {
+                ".validate": "newData.hasChildren(['j', 'i', 'r', 'c'])",
+                "j": {
+                  ".validate": "newData.isNumber()"
+                },
+                "i": {
+                  ".validate": "newData.isString() && newData.val().length <= 8"
+                },
+                "r": {
+                  ".validate": "newData.isNumber()"
+                },
+                "c": {
+                  ".validate": "newData.isNumber()"
+                },
+                "k": {
+                  ".validate": "newData.isNumber()"
+                },
+                "n": {
+                  ".validate": "newData.isNumber()"
+                },
+                "a": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "$o": {
+                  ".validate": false
+                }
+              },
+              "$o": {
+                ".validate": false
+              }
+            }
+          },
+          "eye": {
+            "$p": {
+              "$w": {
+                ".write": "auth != null && auth.uid === $w && (!newData.exists() || root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists())",
+                ".validate": "newData.isNumber()"
+              }
+            }
+          },
+          "chat": {
+            "$p": {
+              ".write": "auth != null && auth.uid === $p && !newData.exists()",
+              "$mid": {
+                ".write": "auth != null && ((!newData.exists() && auth.uid === $p) || (newData.exists() && !data.exists() && root.child('famfi/f/' + $fid + '/members/' + auth.uid).exists() && (auth.uid === $p || root.child('famfi/live/' + $fid + '/eye/' + $p + '/' + auth.uid).exists()) && (root.child('famfi/live/' + $fid + '/on/' + $p).exists() || root.child('famfi/live/' + $fid + '/g/' + $p).exists())))",
+                ".validate": "newData.hasChildren(['u', 'at']) && newData.child('t').exists() !== newData.child('e').exists()",
+                "u": {
+                  ".validate": "newData.val() === auth.uid"
+                },
+                "at": {
+                  ".validate": "newData.isNumber()"
+                },
+                "t": {
+                  ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 140"
+                },
+                "e": {
+                  ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 16"
+                },
+                "$o": {
+                  ".validate": false
+                }
+              }
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FamFi Design Board</title>
+<meta name="description" content="FamFi design board: principles, design system, village art kit and every screen running live in English, 简体中文 and ไทย.">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&family=Mitr:wght@400;500;600&family=Noto+Sans+Thai+Looped:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css?v=2.25">
+<link rel="stylesheet" href="css/app.css?v=2.25">
+<link rel="stylesheet" href="css/village.css?v=2.25">
+<link rel="stylesheet" href="css/design.css?v=2.25">
+</head>
+<body class="board">
+<header class="b-hero">
+  <div class="b-wrap">
+    <div class="b-brand"><img src="icons/icon.svg" alt="" width="72" height="72"><div><span class="b-word">Fam<span>Fi</span></span><span class="b-kicker">Design board · v1.0</span></div>
+      <button type="button" class="b-theme" id="b-theme" aria-label="Toggle dark mode"></button></div>
+    <h1>A friendly family money app, wrapped in a cosy village.</h1>
+    <p class="b-lead">Every family member is a house. Data screens lead with plain answers (“You’re up RM&nbsp;1,240 this year”) before any chart. Built as an iOS home-screen web app — portrait only, three languages, light &amp; dark. Every screen below is the <b>real app running live</b>, not a mock-up.</p>
+    <div class="b-chips"><span>iOS PWA · standalone</span><span>Portrait 390 × 844</span><span>English · 简体中文 · ไทย</span><span>Light &amp; dark</span><span>44pt targets</span><span>Calm-motion mode</span><a href="index.html" class="b-open">Open the app →</a></div>
+  </div>
+</header>
+<nav class="b-nav"><div class="b-wrap">
+  <a href="#principles">Principles</a><a href="#system">Design system</a><a href="#components">Components</a><a href="#village">Village kit</a><a href="#gallery">Screens</a><a href="#languages">Three languages</a><a href="#motion">Motion</a>
+</div></nav>
+
+<main class="b-wrap">
+  <section id="principles" class="b-sec">
+    <h2>Principles</h2>
+    <p class="b-sub">Designed for finance-shy parents, brand-new investors and grandparents who just want to see how the family is doing.</p>
+    <div class="b-grid4" id="principles-grid"></div>
+  </section>
+
+  <section id="system" class="b-sec">
+    <h2>Design system</h2>
+    <h3 class="b-h3">Colour</h3>
+    <p class="b-sub">Warm paper and white cards keep data calm. One leaf-green accent, sunflower for money coming in, wood for the village chrome. Gain/loss never relies on colour alone — every amount carries ▲/▼ and words for screen readers, and people can switch to China-style “red means up”.</p>
+    <div id="swatches" class="b-swatches"></div>
+    <h3 class="b-h3">Type</h3>
+    <p class="b-sub">A chunky, rounded display face paired with a crisp UI face — each with a partner for Simplified Chinese and Thai. Sizes are in rem and follow iOS Dynamic Type (<code>-apple-system-body</code>) plus an in-app A / A+ / A++ setting. Thai gets extra line height for stacked tone marks; numbers are always tabular.</p>
+    <div id="type" class="b-type"></div>
+  </section>
+
+  <section id="components" class="b-sec">
+    <h2>Components</h2>
+    <div class="b-comp" id="components-grid"></div>
+    <h3 class="b-h3">Icons</h3>
+    <p class="b-sub">One 24px line family, 2px rounded strokes. The Family tab keeps a little full-colour village as the signature mark.</p>
+    <div id="icons" class="b-icons"></div>
+  </section>
+
+  <section id="village" class="b-sec">
+    <h2>Village kit</h2>
+    <p class="b-sub">All art is generated SVG — no image files — so every house is unique to its owner and the whole village re-lights for night mode. Houses grow with the owner’s total (levels 1–5); privacy-hidden totals show a neutral house.</p>
+    <div id="kit"></div>
+  </section>
+
+  <section id="gallery" class="b-sec">
+    <h2>Screens</h2>
+    <p class="b-sub">Live iframes of the app in “shot” mode (demo data, nothing saved). Tap around inside any phone — they are fully interactive.</p>
+    <div id="screen-groups"></div>
+  </section>
+
+  <section id="languages" class="b-sec">
+    <h2>Three languages, one layout</h2>
+    <p class="b-sub">Switching is instant (no reload) and remembered per person. Tab labels, buttons and house tags auto-fit instead of truncating; Chinese uses compact 万 formatting, Thai uses the Buddhist calendar and baht. Family-typed names and goals are never auto-translated.</p>
+    <div id="lang-grid" class="b-phones"></div>
+  </section>
+
+  <section id="motion" class="b-sec">
+    <h2>Motion</h2>
+    <div class="b-motion" id="motion-grid"></div>
+  </section>
+</main>
+<footer class="b-foot"><div class="b-wrap">FamFi prototype · live US prices (Finnhub + Twelve Data), crypto (CoinGecko) and ECB exchange rates · everything stored on the device · <a href="index.html">Open the app</a></div></footer>
+
+<div id="sheet-root"></div><div id="toast-root"></div>
+<script src="js/core.js?v=2.25"></script>
+<script src="js/data.js?v=2.25"></script>
+<script src="js/calc.js?v=2.25"></script>
+<script src="js/ledger.js?v=2.25"></script>
+<script src="js/play.js?v=2.25"></script>
+<script src="js/lucky.js?v=2.25"></script>
+<script src="js/grid.js?v=2.25"></script>
+<script src="js/store.js?v=2.25"></script>
+<script src="js/config.js?v=2.25"></script>
+<script src="js/market.js?v=2.25"></script>
+<script src="js/i18n.js?v=2.25"></script>
+<script src="js/strings-en.js?v=2.25"></script>
+<script src="js/strings-zh.js?v=2.25"></script>
+<script src="js/strings-th.js?v=2.25"></script>
+<script src="js/art.js?v=2.25"></script>
+<script src="js/art-shop.js?v=2.25"></script>
+<script src="js/art-lucky.js?v=2.25"></script>
+<script src="js/ui.js?v=2.25"></script>
+<script src="js/charts.js?v=2.25"></script>
+<script src="js/design.js?v=2.25"></script>
+</body>
+</html>

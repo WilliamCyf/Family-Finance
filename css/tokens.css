@@ -1,0 +1,119 @@
+/* ============================================================
+   FamFi — design tokens
+   Warm, friendly, Hay Day-inspired. Data screens stay calm:
+   cream paper, white cards, one leaf-green accent, sunflower
+   for money-coming-in, wood for the village chrome.
+   ============================================================ */
+:root {
+  /* type — chunky display + crisp UI, each with SC + Thai partners */
+  --font-display: "Fredoka", "ZCOOL KuaiLe", "Mitr", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --font-ui: "Nunito", "Noto Sans SC", "Noto Sans Thai Looped", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --lh: 1.45;
+  --lh-tight: 1.16;
+
+  /* surfaces */
+  --bg: #FBF7EF;
+  --bg-2: #F4EDE0;
+  --card: #FFFFFF;
+  --card-2: #FBF7EE;
+  --sunken: #F2EBDD;
+  --line: #ECE4D4;
+  --line-2: #DED4C0;
+  --track: #EFE8DA;
+
+  /* ink */
+  --ink: #27241E;
+  --ink-2: #5E584D;
+  --ink-3: #857E70;
+
+  /* brand */
+  --brand: #2F8F46;
+  --brand-2: #23733A;
+  --brand-ink: #1E6B33;
+  --brand-tint: #E2F2DC;
+  --sun: #FFC23D;
+  --sun-2: #F0A91B;
+  --sun-ink: #7A4E00;
+  --sun-tint: #FFF3D2;
+  --barn: #E0563F;
+  --sky: #3D8FD6;
+  --plum: #8A5BC7;
+  --wood: #B9824E;
+  --wood-2: #8A5A30;
+  --wood-3: #6E4628;
+
+  /* money semantics (never colour alone — always ▲/▼ + words) */
+  --green: #1C8549;
+  --green-bg: #E1F3E7;
+  --red: #C53E2C;
+  --red-bg: #FBE6E1;
+  --gain: var(--green);
+  --gain-bg: var(--green-bg);
+  --loss: var(--red);
+  --loss-bg: var(--red-bg);
+  --chart-1: #2F8F46;
+
+  /* depth */
+  --shadow-1: 0 1px 1px rgba(70, 50, 20, .04), 0 3px 10px rgba(70, 50, 20, .06);
+  --shadow-2: 0 8px 26px rgba(70, 50, 20, .13), 0 1px 3px rgba(70, 50, 20, .06);
+  --shadow-3: 0 20px 56px rgba(40, 30, 10, .24);
+
+  /* shape */
+  --r-xs: 10px; --r-sm: 14px; --r-md: 20px; --r-lg: 26px; --r-xl: 32px;
+
+  /* motion */
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --sheet-ease: cubic-bezier(.32, .72, 0, 1);
+  --d1: 120ms; --d2: 220ms; --d3: 380ms;
+
+  /* layout */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --tabbar-h: 66px;
+  --tabbar-gap: max(10px, calc(var(--sab) - 8px));
+  --pad: 18px;
+
+  color-scheme: light;
+}
+
+:root.theme-dark {
+  --bg: #16140F;
+  --bg-2: #1D1A14;
+  --card: #23201A;
+  --card-2: #2A2620;
+  --sunken: #2E2A23;
+  --line: #36312A;
+  --line-2: #47403A;
+  --track: #38332B;
+  --ink: #F5F0E6;
+  --ink-2: #CFC6B5;
+  --ink-3: #A49B8A;
+  --brand: #4DB86A;
+  --brand-2: #2F8A49;
+  --brand-ink: #8BDCA0;
+  --brand-tint: #1E3524;
+  --sun-tint: #3A2F14;
+  --sun-ink: #FFD98A;
+  --green: #5ACB82;
+  --green-bg: #183324;
+  --red: #FF7F6A;
+  --red-bg: #3B1E19;
+  --chart-1: #5ACB82;
+  --shadow-1: 0 1px 1px rgba(0, 0, 0, .3), 0 3px 10px rgba(0, 0, 0, .25);
+  --shadow-2: 0 8px 26px rgba(0, 0, 0, .45);
+  --shadow-3: 0 20px 56px rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+
+
+/* per-script tuning: Thai needs room for stacked tone marks; Chinese is compact */
+:root[data-lang="th"] { --lh: 1.66; --lh-tight: 1.36; }
+:root[data-lang="zh"] { --lh: 1.55; --lh-tight: 1.22; }
+
+/* before JS decides (splash), follow the system */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #splash { background: radial-gradient(circle at 50% 35%, #2A2416, #16140F 62%); }
+  :root:not([data-theme="light"]) #splash .splash-word { color: #F5F0E6; }
+  :root:not([data-theme="light"]) #splash .splash-tag { color: #CFC6B5; }
+}

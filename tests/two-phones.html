@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FamFi · two phones</title>
+<!-- Dev only (not deployed): two FamFi phones side by side, sharing an in-memory database that
+     enforces the hub's real database.rules.json. Run tests/devserver.py, open /tests/two-phones.html
+     (add ?phones=3 for a third phone — e.g. two people playing Block Blast and one choosing whom to watch) -->
+<style>
+  :root { color-scheme: light dark; --bg: #EFE9DC; --ink: #2B2620; --card: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1B1915; --ink: #EDE6D8; --card: #26231E; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 -apple-system, system-ui, sans-serif; }
+  header { padding: 10px 16px; display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+  h1 { font-size: 16px; margin: 0; }
+  .phones { display: flex; gap: 18px; padding: 0 16px 16px; flex-wrap: wrap; }
+  figure { margin: 0; }
+  figcaption { font-weight: 700; margin: 0 0 6px; }
+  iframe { width: 390px; height: 844px; border: 0; border-radius: 34px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  #db { flex: 1 1 260px; min-width: 260px; max-height: 870px; overflow: auto; background: var(--card); border-radius: 16px; padding: 12px; font: 12px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; margin: 0; }
+</style>
+</head>
+<body>
+<header><h1>FamFi · two phones, one shared database</h1><span id="status">loading rules…</span></header>
+<div class="phones">
+  <figure><figcaption>📱 You</figcaption><iframe id="me" title="Your phone"></iframe></figure>
+  <figure><figcaption>📱 Your sister</figcaption><iframe id="sis" title="Sister's phone"></iframe></figure>
+  <pre id="db" aria-label="Database"></pre>
+</div>
+<script src="fakebase.js"></script>
+<script>
+  fetch('/__rules.json').then((r) => r.json()).then((rules) => {
+    window.FAKE_SERVER = new FakeBase.Server(rules);
+    document.getElementById('status').textContent = 'rules: database.rules.json (live copy)';
+    const q = new URLSearchParams(location.search), lang = q.get('lang') || 'en';
+    const names = ['me', 'sis'];
+    if (q.get('phones') === '3') {
+      names.push('dad');
+      document.getElementById('db').insertAdjacentHTML('beforebegin', '<figure><figcaption>📱 Dad</figcaption><iframe id="dad" title="Dad\'s phone"></iframe></figure>');
+    }
+    names.forEach((n) => { document.getElementById(n).src = '../index.html?fake=' + n + '&nosw&lang=' + lang; });
+    // show the famfi part of the database (documents abbreviated)
+    const show = () => {
+      const f = JSON.parse(JSON.stringify((FAKE_SERVER.data || {}).famfi || {}));
+      Object.values(f.m || {}).forEach((m) => ['pub', 'money', 'priv'].forEach((k) => { if (m[k]) m[k] = '<' + k + ' ' + m[k].length + ' bytes>'; }));
+      document.getElementById('db').textContent = 'famfi/\n' + JSON.stringify(f, null, 2);
+    };
+    setInterval(show, 500);
+  });
+</script>
+</body>
+</html>

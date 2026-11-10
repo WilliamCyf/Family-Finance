@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "family-finance",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "tests/devserver.py",
+        "8644"
+      ],
+      "port": 8644
+    }
+  ]
+}

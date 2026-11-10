@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#8DC85A;font-family:Nunito} .row{display:flex;flex-wrap:wrap;gap:6px;padding:10px;align-items:flex-end} .cell{background:rgba(255,255,255,.15);border-radius:8px;padding:4px;text-align:center;font-size:11px}
+.an-svg{width:96px;height:96px} .night{background:#2a3d3a}
+</style></head><body>
+<div id="out"></div>
+<script src="../js/core.js"></script><script src="../js/data.js"></script><script src="../js/grid.js"></script><script src="../js/art.js"></script>
+<script>
+const A=FF.art; document.body.insertAdjacentHTML('afterbegin',A.defs());
+const L=FF.store?null:null;
+const looks=[
+ {roof:'gable',roofColor:'#3D7FD1',wall:'wood',wallColor:'#FFF1D6',door:'arch',doorColor:'#2F7D4A',flag:{on:true,color:'#FFC23D',emblem:'star'},decor:['flowers','mailbox','lantern'],plate:"Jamie's Den"},
+ {roof:'gable',roofColor:'#E0563F',wall:'plaster',wallColor:'#FFD9BE',door:'round',doorColor:'#E3A520',flag:{on:true,color:'#E66FA0',emblem:'heart'},decor:['flowers','fence','bench'],plate:"Mum's Nest"},
+ {roof:'hip',roofColor:'#5D6B7E',wall:'brick',wallColor:'#EED9B4',door:'square',doorColor:'#8A5A30',flag:{on:true,color:'#3E9B55',emblem:'leaf'},decor:['fence','bush','fountain','mailbox'],plate:'The Workshop'},
+ {roof:'steep',roofColor:'#3E9B55',wall:'plaster',wallColor:'#FBFBF7',door:'arch',doorColor:'#C8412F',flag:{on:false},decor:['flowers','lantern','bench','bush'],plate:"Ah Ma's Garden"}];
+let h='';
+[false,true].forEach(n=>{A.night=n; h+='<div class="row '+(n?'night':'')+'">';
+ for(let lv=1;lv<=5;lv++){h+='<div class="cell">'+A.house(looks[(lv-1)%4],lv)+'<br>L'+lv+'</div>';}
+ h+='</div><div class="row '+(n?'night':'')+'">';
+ ['chicken','chick','puppy','cat','duck','pig'].forEach(k=>h+='<div class="cell">'+A.animal(k)+'<br>'+k+'</div>');
+ ['oak','pine','blossom','bush'].forEach(k=>h+='<div class="cell">'+A.tree(k,3).svg+'</div>');
+ h+='<div class="cell">'+A.familyTree('Family Tree').svg+'</div><div class="cell">'+A.windmill().svg+'</div><div class="cell">'+A.well().svg+'</div><div class="cell">'+A.lamp().svg+'</div><div class="cell">'+A.benchSprite().svg+'</div><div class="cell">'+A.signpost('FamFi','Welcome!').svg+'</div><div class="cell">'+A.goalsStand({title:'Goals 2026',done:2,total:5}).svg+'</div><div class="cell">'+A.goalsStand({title:'Goals 2026',done:5,total:5}).svg+'</div>';
+ h+='</div>';});
+A.night=false;
+h+='<div class="row" style="background:#fff">';A.AVATAR_PRESETS.forEach(a=>h+=A.avatar(a,64));h+=A.logo(120);h+=A.familyIcon(56);
+Object.keys(A.ICONS).forEach(k=>h+='<span title="'+k+'">'+A.icon(k,28)+'</span>');h+='</div>';
+h+='<div class="row" style="background:#fff">'+A.emptyArt('poster')+A.emptyArt('basket')+A.emptyArt('sprout')+A.emptyArt('village')+'</div>';
+h+='<div style="transform:scale(.4);transform-origin:0 0;width:1000px">'+A.ground()+'</div>';
+document.getElementById('out').innerHTML=h;
+</script></body></html>

@@ -1,0 +1,69 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "database.rules.json",
+      "**/.*",
+      "**/.*/**",
+      "**/node_modules/**",
+      "**/README.md",
+      "FamFi/tests/**",
+      "brag-output/**"
+    ],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/FamFi/",
+        "type": 302
+      },
+      {
+        "source": "/famfi",
+        "destination": "/FamFi/",
+        "type": 301
+      },
+      {
+        "source": "/famfi/",
+        "destination": "/FamFi/",
+        "type": 301
+      },
+      {
+        "source": "/Famfi",
+        "destination": "/FamFi/",
+        "type": 301
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.webmanifest",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/manifest+json"
+          }
+        ]
+      },
+      {
+        "source": "**/sw.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/FamFi/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  }
+}

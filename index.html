@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>FamFi</title>
+<meta name="description" content="FamFi — a friendly family finance app. Every family member gets a house in a cosy village; see your money in plain words, set goals together.">
+<meta name="theme-color" content="#FBF7EF">
+<meta name="color-scheme" content="light dark">
+
+<!-- iOS "Add to Home Screen": standalone, full-bleed under the status bar -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FamFi">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<!-- launch screens (portrait) -->
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1320x2868.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1206x2622.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1290x2796.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1179x2556.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1170x2532.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1125x2436.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1242x2688.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-828x1792.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-750x1334.jpg">
+
+<!-- Fredoka + Nunito (Latin) · ZCOOL KuaiLe + Noto Sans SC (简体中文) · Mitr + Noto Sans Thai Looped (ไทย) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&family=Mitr:wght@400;500;600&family=Noto+Sans+Thai+Looped:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css?v=2.25">
+<link rel="stylesheet" href="css/app.css?v=2.25">
+<link rel="stylesheet" href="css/village.css?v=2.25">
+</head>
+<body>
+<div id="app">
+  <div id="screens"></div>
+  <div id="pages"></div>
+  <div id="visit" role="region" aria-label="Visit"></div>
+  <nav id="tabbar" class="tabbar" role="tablist" aria-label="FamFi"></nav>
+  <div id="flow"></div>
+  <div id="sheet-root"></div>
+  <div id="toast-root" aria-live="polite"></div>
+  <canvas id="fx-canvas" aria-hidden="true"></canvas>
+</div>
+
+<div id="splash" aria-hidden="true">
+  <img class="splash-logo" src="icons/icon.svg" alt="">
+  <div class="splash-word">Fam<span>Fi</span></div>
+  <div class="splash-tag">Money, made friendly — together.</div>
+  <div class="splash-dots"><i></i><i></i><i></i></div>
+</div>
+
+<div id="rotate-guard" role="alert">
+  <div class="rg-phone"></div>
+  <div>Please turn your phone upright</div>
+  <div lang="zh-Hans">请把手机竖过来</div>
+  <div lang="th">กรุณาหมุนโทรศัพท์เป็นแนวตั้ง</div>
+</div>
+
+<script src="js/fb-config.js?v=2.25"></script>
+<script src="js/core.js?v=2.25"></script>
+<script src="js/data.js?v=2.25"></script>
+<script src="js/calc.js?v=2.25"></script>
+<script src="js/ledger.js?v=2.25"></script>
+<script src="js/play.js?v=2.25"></script>
+<script src="js/lucky.js?v=2.25"></script>
+<script src="js/blast.js?v=2.25"></script>
+<script src="js/news.js?v=2.25"></script>
+<script src="js/grid.js?v=2.25"></script>
+<script src="js/store.js?v=2.25"></script>
+<script src="js/cloud.js?v=2.25"></script>
+<script src="js/config.js?v=2.25"></script>
+<script src="js/market.js?v=2.25"></script>
+<script src="js/i18n.js?v=2.25"></script>
+<script src="js/strings-en.js?v=2.25"></script>
+<script src="js/art.js?v=2.25"></script>
+<script src="js/art-shop.js?v=2.25"></script>
+<script src="js/art-lucky.js?v=2.25"></script>
+<script src="js/art-news.js?v=2.25"></script>
+<script src="js/art-sage.js?v=2.25"></script>
+<script src="js/ui.js?v=2.25"></script>
+<script src="js/charts.js?v=2.25"></script>
+<script src="js/screens-money.js?v=2.25"></script>
+<script src="js/screens-manage.js?v=2.25"></script>
+<script src="js/screens-menu.js?v=2.25"></script>
+<script src="js/screens-family.js?v=2.25"></script>
+<script src="js/screens-hall.js?v=2.25"></script>
+<script src="js/screens-shop.js?v=2.25"></script>
+<script src="js/screens-blast.js?v=2.25"></script>
+<script src="js/screens-lucky.js?v=2.25"></script>
+<script src="js/screens-news.js?v=2.25"></script>
+<script src="js/screens-spin.js?v=2.25"></script>
+<script src="js/screens-sage.js?v=2.25"></script>
+<script src="js/screens-help.js?v=2.25"></script>
+<script src="js/village.js?v=2.25"></script>
+<script src="js/app.js?v=2.25"></script>
+</body>
+</html>
