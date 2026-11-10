@@ -35,10 +35,14 @@
   /* One walk over the records gives every account's money and the holdings' value on each of
      the days asked for (days must be ascending). Walking once matters on a phone: asking
      calc.summary() for 12 month-ends × 6 accounts would sort and re-read every record ~150 times. */
-  function snapshots(pf, base, days) {
+  function snapshots(pf, base, days, opt) {
     const txs = sorted(pf.txns);
     const flows = [];
-    txs.forEach((t) => C().flows(t).forEach((f) => flows.push(f)));
+    // opt.sinceStart (trend lines): a starting balance is money that was already there before
+    // the app was — counting it from the very beginning keeps the line from jumping up on the
+    // day an account was first written down
+    const early = !!(opt && opt.sinceStart);
+    txs.forEach((t) => C().flows(t).forEach((f) => { if (early && t.start && !f.lock) f.day = -Infinity; flows.push(f); }));
     flows.sort((a, b) => a.day - b.day);
     const books = {}, qty = {};
     let ti = 0, fi = 0;
@@ -107,8 +111,8 @@
     return out;
   }
   /* net worth over time: [{ day, assets, debts, net }] */
-  function netSeries(pf, base, days) {
-    return snapshots(pf, base, days).map((s) => { const p = shelve(pf, s); return { day: s.day, assets: p.assets, debts: p.debts, net: p.net, liquid: p.liquid, invest: p.invest, longterm: p.longterm }; });
+  function netSeries(pf, base, days, opt) {
+    return snapshots(pf, base, days, opt).map((s) => { const p = shelve(pf, s); return { day: s.day, assets: p.assets, debts: p.debts, net: p.net, liquid: p.liquid, invest: p.invest, longterm: p.longterm }; });
   }
   /* evenly spaced days for a small trend line (always ends today) */
   function spread(from, to, n) {

@@ -1,65 +1,80 @@
 /* ============================================================
-   FamFi — design tokens
-   Warm, friendly, Hay Day-inspired. Data screens stay calm:
-   cream paper, white cards, one leaf-green accent, sunflower
-   for money-coming-in, wood for the village chrome.
+   Family Finance — design tokens
+   Warm and friendly, but calm where the numbers are: cream
+   paper, white cards, one emerald accent, sunflower gold for
+   money coming in, wood for the village.
+   Every colour, shadow and corner in the app comes from here
+   (a "token" is a named value: change it once, it changes
+   everywhere).
    ============================================================ */
 :root {
-  /* type — chunky display + crisp UI, each with SC + Thai partners */
+  /* type — a rounded display face + a crisp reading face, each with a Chinese and a Thai partner */
   --font-display: "Fredoka", "ZCOOL KuaiLe", "Mitr", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
   --font-ui: "Nunito", "Noto Sans SC", "Noto Sans Thai Looped", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --lh: 1.45;
   --lh-tight: 1.16;
 
   /* surfaces */
-  --bg: #FBF7EF;
-  --bg-2: #F4EDE0;
+  --bg: #FAF6EE;
+  --bg-2: #F3ECDF;
   --card: #FFFFFF;
-  --card-2: #FBF7EE;
+  --card-2: #FCF9F2;
   --sunken: #F2EBDD;
-  --line: #ECE4D4;
-  --line-2: #DED4C0;
-  --track: #EFE8DA;
+  --line: #EBE3D3;
+  --line-2: #DCD2BE;
+  --track: #EEE7D9;
 
   /* ink */
-  --ink: #27241E;
-  --ink-2: #5E584D;
-  --ink-3: #857E70;
+  --ink: #22201B;
+  --ink-2: #57524A;
+  --ink-3: #7E776A;
 
   /* brand */
-  --brand: #2F8F46;
-  --brand-2: #23733A;
-  --brand-ink: #1E6B33;
-  --brand-tint: #E2F2DC;
-  --sun: #FFC23D;
-  --sun-2: #F0A91B;
-  --sun-ink: #7A4E00;
-  --sun-tint: #FFF3D2;
+  --brand: #1C8A4F;
+  --brand-2: #14703E;
+  --brand-ink: #136237;
+  --brand-tint: #DDF3E3;
+  --sun: #FFC53D;
+  --sun-2: #EFA61A;
+  --sun-ink: #744A00;
+  --sun-tint: #FFF2CF;
   --barn: #E0563F;
   --sky: #3D8FD6;
   --plum: #8A5BC7;
+  --teal: #1F9E91;
   --wood: #B9824E;
   --wood-2: #8A5A30;
   --wood-3: #6E4628;
 
+  /* the deep-green "hero" cards (net worth, health): white text sits on these */
+  --hero-1: #0D5631;
+  --hero-2: #1B8A4E;
+  --hero-3: #37B26D;
+  --hero-ink: #FFFFFF;
+  --hero-ink-2: rgba(255, 255, 255, .78);
+  --hero-chip: rgba(255, 255, 255, .16);
+
   /* money semantics (never colour alone — always ▲/▼ + words) */
-  --green: #1C8549;
-  --green-bg: #E1F3E7;
+  --green: #17824A;
+  --green-bg: #DFF3E6;
   --red: #C53E2C;
   --red-bg: #FBE6E1;
   --gain: var(--green);
   --gain-bg: var(--green-bg);
   --loss: var(--red);
   --loss-bg: var(--red-bg);
-  --chart-1: #2F8F46;
+  --chart-1: #1C8A4F;
+  --chart-2: #3D8FD6;
+  --coral: #E9735C;
 
   /* depth */
-  --shadow-1: 0 1px 1px rgba(70, 50, 20, .04), 0 3px 10px rgba(70, 50, 20, .06);
-  --shadow-2: 0 8px 26px rgba(70, 50, 20, .13), 0 1px 3px rgba(70, 50, 20, .06);
+  --shadow-1: 0 1px 1px rgba(70, 50, 20, .04), 0 4px 14px rgba(70, 50, 20, .06);
+  --shadow-2: 0 10px 30px rgba(70, 50, 20, .13), 0 1px 3px rgba(70, 50, 20, .06);
   --shadow-3: 0 20px 56px rgba(40, 30, 10, .24);
+  --shadow-hero: 0 14px 34px rgba(13, 86, 49, .28), 0 2px 6px rgba(13, 86, 49, .18);
 
   /* shape */
-  --r-xs: 10px; --r-sm: 14px; --r-md: 20px; --r-lg: 26px; --r-xl: 32px;
+  --r-xs: 10px; --r-sm: 14px; --r-md: 22px; --r-lg: 28px; --r-xl: 34px;
 
   /* motion */
   --ease: cubic-bezier(.22, 1, .36, 1);
@@ -78,31 +93,37 @@
 }
 
 :root.theme-dark {
-  --bg: #16140F;
-  --bg-2: #1D1A14;
-  --card: #23201A;
-  --card-2: #2A2620;
-  --sunken: #2E2A23;
-  --line: #36312A;
-  --line-2: #47403A;
-  --track: #38332B;
+  --bg: #141310;
+  --bg-2: #1B1915;
+  --card: #211F1A;
+  --card-2: #28251F;
+  --sunken: #2C2922;
+  --line: #343029;
+  --line-2: #464039;
+  --track: #37322A;
   --ink: #F5F0E6;
   --ink-2: #CFC6B5;
-  --ink-3: #A49B8A;
-  --brand: #4DB86A;
-  --brand-2: #2F8A49;
-  --brand-ink: #8BDCA0;
-  --brand-tint: #1E3524;
+  --ink-3: #A39A89;
+  --brand: #45B870;
+  --brand-2: #2A8A4C;
+  --brand-ink: #8BDCA6;
+  --brand-tint: #1B3424;
   --sun-tint: #3A2F14;
   --sun-ink: #FFD98A;
-  --green: #5ACB82;
-  --green-bg: #183324;
+  --hero-1: #0A3D24;
+  --hero-2: #14663B;
+  --hero-3: #1F8A52;
+  --green: #5ACB86;
+  --green-bg: #173324;
   --red: #FF7F6A;
   --red-bg: #3B1E19;
-  --chart-1: #5ACB82;
+  --chart-1: #5ACB86;
+  --chart-2: #6FB2EC;
+  --coral: #F08D78;
   --shadow-1: 0 1px 1px rgba(0, 0, 0, .3), 0 3px 10px rgba(0, 0, 0, .25);
   --shadow-2: 0 8px 26px rgba(0, 0, 0, .45);
   --shadow-3: 0 20px 56px rgba(0, 0, 0, .6);
+  --shadow-hero: 0 14px 34px rgba(0, 0, 0, .45);
   color-scheme: dark;
 }
 
@@ -113,7 +134,7 @@
 
 /* before JS decides (splash), follow the system */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) #splash { background: radial-gradient(circle at 50% 35%, #2A2416, #16140F 62%); }
+  :root:not([data-theme="light"]) #splash { background: radial-gradient(circle at 50% 35%, #1F2A1E, #141310 62%); }
   :root:not([data-theme="light"]) #splash .splash-word { color: #F5F0E6; }
   :root:not([data-theme="light"]) #splash .splash-tag { color: #CFC6B5; }
 }
